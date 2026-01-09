@@ -1,0 +1,28 @@
+{
+  "name": "primetrade.ai",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000P\u0000r\u0000i\u0000m\u0000e\u0000t\u0000r\u0000a\u0000d\u0000e\u0000.\u0000a\u0000i\u0000_\u0000T\u0000a\u0000s\u0000k\u0000_\u0000I\u0000n\u0000t\u0000e\u0000r\u0000n\u0000\r\u0000 \u0000",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PankajNarwade28/Primetrade.ai_Task_Intern.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PankajNarwade28/Primetrade.ai_Task_Intern/issues"
+  },
+  "homepage": "https://github.com/PankajNarwade28/Primetrade.ai_Task_Intern#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.16.0"
+  }
+}
