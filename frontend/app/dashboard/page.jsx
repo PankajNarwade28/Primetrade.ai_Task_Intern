@@ -6,9 +6,9 @@ export default function ConnectionTest() {
 
   useEffect(() => {
     async function checkHealth() {
-      try {
-        const response = await fetch('http://localhost:8000/api/v1/health');
-        const data = await response.json();
+      try { 
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/health`);
+        const data = await response.json(); 
         setStatus({
           backend: 'Connected',
           database: data.database ? 'Connected' : 'Disconnected'
