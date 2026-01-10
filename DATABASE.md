@@ -78,15 +78,4 @@ INSERT INTO users (username, email, password, role)
 VALUES ('system_admin', 'admin@primetrade.com', '$2b$10$YourHashedPasswordHere', 'admin');
 
 ```
-
-```
-
-
-
-### Key Technical Notes:
-* **Precision**: `DECIMAL(18, 8)` is used for the amount to ensure accuracy for assets like Bitcoin, while `DECIMAL(18, 2)` is used for fiat prices.
-* **Relational Integrity**: The `ON DELETE CASCADE` rule ensures that your database remains clean; if a user account is deleted, their trade history is automatically purged.
-* **Scalability**: The `role` column is indexed via the `ENUM` type, making role-based filtering (like for the Admin Dashboard) highly efficient.
-
  
-```
