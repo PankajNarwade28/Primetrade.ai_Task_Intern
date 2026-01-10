@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, LayoutDashboard, ShoppingCart, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { LogOut, LayoutDashboard, ShoppingCart, TrendingUp, TrendingDown, Wallet,Trash2 } from "lucide-react";
 
 export default function PrimeTradeDashboard() {
   const [user, setUser] = useState(null);
@@ -19,6 +19,26 @@ export default function PrimeTradeDashboard() {
   ]);
   const [quantities, setQuantities] = useState({});
   const router = useRouter();
+
+  // Inside PrimeTradeDashboard component:
+const handleDelete = async (id) => {
+  if (!window.confirm("Permanently delete this trade ?")) return;
+
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/trades/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.ok) {
+      setStatus({ msg: "Trade deleted successfully", type: "success" });
+      loadTrades(token); // Refresh the table
+    }
+  } catch (err) {
+    setStatus({ msg: "Connection error", type: "error" });
+  }
+};
 
   // Initialization & Security Guard
   useEffect(() => {
@@ -68,8 +88,24 @@ export default function PrimeTradeDashboard() {
     }
   };
 
-  // 3. Persistent Buy Operation
+// 3. Persistent Buy Operation with Confirmation
   const handleBuy = async (stock, qty) => {
+    // Calculate total for the confirmation message
+    const totalCost = (stock.price * qty).toFixed(2);
+    
+    // Show confirmation dialog with stock details
+    const isConfirmed = window.confirm(
+      `Confirm Purchase:\n\n` +
+      `Asset: ${stock.symbol}\n` +
+      `Quantity: ${qty}\n` +
+      `Price per unit: $${stock.price}\n` +
+      `Total Cost: $${totalCost}\n\n` +
+      `Do you want to proceed?`
+    );
+
+    // If user clicks "Cancel", stop the function
+    if (!isConfirmed) return;
+
     const token = localStorage.getItem("token");
     const tradeData = {
       asset_name: stock.symbol,
@@ -89,14 +125,15 @@ export default function PrimeTradeDashboard() {
       });
 
       if (res.ok) {
-        setStatus({ msg: `Bought ${qty} units of ${stock.symbol} at $${stock.price}`, type: "success" });
-        loadTrades(token);
+        setStatus({ msg: `Successfully bought ${qty} units of ${stock.symbol}!`, type: "success" });
+        loadTrades(token); // Refresh the MySQL ledger
+      } else {
+        setStatus({ msg: "Transaction failed: Unauthorized or invalid data", type: "error" });
       }
     } catch (err) {
-      setStatus({ msg: "Transaction failed", type: "error" });
+      setStatus({ msg: "Server connection error", type: "error" });
     }
   };
-
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
@@ -152,7 +189,7 @@ export default function PrimeTradeDashboard() {
                 <input 
                   type="number" 
                   min="1"
-                  placeholder="Qty"
+                  placeholder="One "
                   className="w-20 p-2 bg-slate-50 border rounded-lg text-black font-bold outline-none focus:ring-2 focus:ring-blue-100"
                   onChange={(e) => setQuantities({ ...quantities, [stock.id]: e.target.value })}
                 />
@@ -167,38 +204,35 @@ export default function PrimeTradeDashboard() {
           ))}
         </div>
 
-        {/* 5. Transaction History Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-6 py-5 border-b border-slate-100 font-bold text-slate-800 flex items-center gap-2">
-            <Wallet size={18} className="text-blue-600"/> Persistent Trade Ledger (MySQL)
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <tr>
-                  <th className="px-6 py-4">Asset</th>
-                  <th className="px-6 py-4">Execution Price</th>
-                  <th className="px-6 py-4">Quantity</th>
-                  <th className="px-6 py-4 text-right">Timestamp</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-black">
-                {trades.length > 0 ? trades.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-blue-600">{t.asset_name}</td>
-                    <td className="px-6 py-4 font-medium">${t.price}</td>
-                    <td className="px-6 py-4">{t.amount}</td>
-                    <td className="px-6 py-4 text-right text-xs text-slate-400">
-                      {new Date(t.created_at).toLocaleTimeString()}
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan="4" className="px-6 py-12 text-center text-slate-400 italic font-medium">No database records found. Initiate a simulated trade above.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {/* 5. Trades History Table */} 
+<table className="w-full text-left">
+  <thead className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+    <tr>
+      <th className="px-6 py-4">Asset</th>
+      <th className="px-6 py-4">Price</th>
+      <th className="px-6 py-4">Qty</th>
+      <th className="px-6 py-4 text-center">Action</th>
+      <th className="px-6 py-4 text-right">Time</th>
+    </tr>
+  </thead>
+  <tbody className="divide-y divide-slate-100 text-black">
+    {trades.map((t) => (
+      <tr key={t.id} className="hover:bg-slate-50">
+        <td className="px-6 py-4 font-bold text-blue-600">{t.asset_name}</td>
+        <td className="px-6 py-4">${t.price}</td>
+        <td className="px-6 py-4">{t.amount}</td>
+        <td className="px-6 py-4 text-center">
+          <button onClick={() => handleDelete(t.id)} className="text-slate-300 hover:text-red-600 p-2">
+            <Trash2 size={16} />
+          </button>
+        </td>
+        <td className="px-6 py-4 text-right text-xs text-slate-400">
+          {new Date(t.created_at).toLocaleTimeString()}
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
       </main>
     </div>
   );
