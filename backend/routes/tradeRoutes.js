@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const tradeController = require('../controllers/tradeController'); 
- 
+const verifyToken = require('../middleware/authMiddleware');
+const tradeController = require('../controllers/tradeController');
 
-// CRUD APIs for Trades [cite: 13]
-router.get('/', tradeController.getTrades);
-router.post('/', tradeController.createTrade);
-router.delete('/:id', tradeController.deleteTrade);
+// All routes below require a valid JWT
+router.get('/', verifyToken, tradeController.getTrades);
+router.post('/', verifyToken, tradeController.createTrade);
+router.delete('/:id', verifyToken, tradeController.deleteTrade);
 
 module.exports = router;

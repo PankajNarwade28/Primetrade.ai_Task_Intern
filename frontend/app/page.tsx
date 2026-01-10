@@ -99,7 +99,7 @@ export default function Home() {
         <section className="mb-12">
           <div className="flex items-center mb-6">
             <Activity className="w-6 h-6 text-blue-600 mr-2" />
-            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">System Connectivity</h2>
+            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">System Connectivity [Developer Purpose Only]</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

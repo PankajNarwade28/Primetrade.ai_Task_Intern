@@ -9,32 +9,34 @@ export default function Login() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
+ const handleLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
 
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
-      });
+    const data = await res.json();
 
-      const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
 
-      if (res.ok) {
-        // Securely store JWT and user info for protected access
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        router.push('/dashboard'); 
+      // Strict Redirection Rule
+      if (data.user.role === 'admin') {
+        router.push('/admindash');
       } else {
-        // Show error messages from API response
-        setError(data.message || 'Invalid credentials');
+        router.push('/dashboard');
       }
-    } catch (err) {
-      setError("Could not connect to the server.");
+    } else {
+      setError(data.message || 'Invalid credentials');
     }
-  };
+  } catch (err) {
+    setError("Could not connect to the server.");
+  }
+};
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">

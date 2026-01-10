@@ -6,20 +6,38 @@ import { LogOut, LayoutDashboard, PlusCircle, User, Menu, X } from "lucide-react
 export default function PrimeTradeDashboard() {
   const [trades, setTrades] = useState([]);
   const [form, setForm] = useState({ asset_name: "", trade_type: "buy", amount: "", price: "" });
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); 
   const [status, setStatus] = useState({ msg: "", type: "" });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    // 1. Retrieve the token and user string from localStorage
     const token = localStorage.getItem("token");
-    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const storedUserStr = localStorage.getItem("user");
+
+    // 2. Security Check: Redirect if no token
     if (!token) {
-        router.push("/login");
-    } else {
-        setUser(storedUser);
-        loadData(token);
+      router.push("/login");
+      return;
     }
+
+    // 3. Populate User Data: Parse the JSON string back into an object
+    if (storedUserStr) {
+      const storedUser = JSON.parse(storedUserStr);
+      
+      // Strict Redirection Rule: Kick admins back to the admin zone
+      if (storedUser.role === 'admin') {
+        router.push("/admindash");
+        return;
+      }
+      
+      // Update state so the UI shows the name and role
+      setUser(storedUser);
+    }
+
+    // 4. Fetch the specific user's trades
+    loadData(token);
   }, []);
 
   const loadData = async (token) => {
@@ -33,6 +51,8 @@ export default function PrimeTradeDashboard() {
       setStatus({ msg: "Failed to load trades", type: "error" });
     }
   };
+
+  // ... (Keep your existing handleLogout, handleSubmit, and handleDelete functions)
 
   const handleLogout = () => {
     localStorage.clear();
@@ -68,7 +88,6 @@ export default function PrimeTradeDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      {/* 1. Responsive Navbar */}
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
@@ -76,12 +95,13 @@ export default function PrimeTradeDashboard() {
               <span className="text-xl font-bold text-blue-600 tracking-tight">PrimeTrade</span>
             </div>
             
-            {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-8">
               <button onClick={() => router.push("/")} className="flex items-center text-sm font-medium text-slate-600 hover:text-blue-600">
                 <LayoutDashboard className="w-4 h-4 mr-2" /> Home
               </button>
-              {user ? (
+              
+              {/* FIX: User Identity now displays because 'user' state is set */}
+              {user && (
                 <div className="flex items-center space-x-4 border-l pl-6 border-slate-200">
                   <div className="flex flex-col text-right">
                     <span className="text-xs font-semibold text-slate-900">{user.username}</span>
@@ -91,44 +111,24 @@ export default function PrimeTradeDashboard() {
                     <LogOut className="w-5 h-5" />
                   </button>
                 </div>
-              ) : (
-                <button onClick={() => router.push("/login")} className="text-sm font-semibold text-blue-600">Login</button>
               )}
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden flex items-center">
-              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-slate-500 hover:text-slate-600">
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
             </div>
           </div>
         </div>
-
-        {/* Mobile Menu Content */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-white border-t border-slate-100 px-4 pt-2 pb-6 space-y-2">
-             <button onClick={() => router.push("/dashboard")} className="block w-full text-left px-3 py-2 text-base font-medium text-slate-700 hover:bg-slate-50">Dashboard</button>
-             {user ? (
-               <button onClick={handleLogout} className="block w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50">Logout</button>
-             ) : (
-               <button onClick={() => router.push("/login")} className="block w-full text-left px-3 py-2 text-base font-medium text-blue-600">Login</button>
-             )}
-          </div>
-        )}
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 2. Personalized Hero Section */}
         <header className="mb-10">
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+            {/* Personalized Greeting with fallback */}
             Good Morning, {user?.username || 'Trader'}!
           </h2>
           <p className="mt-2 text-slate-500">
-            Welcome back to your <span className="font-semibold">{user?.role}</span> command center. Here is your trading summary.
+            Welcome back to your <span className="font-semibold text-blue-600 uppercase">{user?.role || 'user'}</span> command center.
           </p>
         </header>
 
+        {/* ... (Keep the rest of your UI: Status, Form, and Table) */}
         {status.msg && (
           <div className={`mb-8 p-4 rounded-xl border flex items-center ${status.type === "success" ? "bg-green-50 border-green-100 text-green-800" : "bg-red-50 border-red-100 text-red-800"}`}>
             <span className="text-sm font-medium">{status.msg}</span>
@@ -136,7 +136,6 @@ export default function PrimeTradeDashboard() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* 3. Trade Entry Form */}
           <section className="lg:col-span-4">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
               <div className="flex items-center mb-6">
@@ -148,12 +147,10 @@ export default function PrimeTradeDashboard() {
                   <label className="text-xs font-bold text-slate-500 uppercase ml-1">Asset Name</label>
                   <input type="text" placeholder="e.g. BTC" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all text-black" value={form.asset_name} onChange={(e) => setForm({ ...form, asset_name: e.target.value })} required />
                 </div>
-
                 <div className="grid grid-cols-2 gap-3 p-1 bg-slate-100 rounded-xl">
                   <button type="button" onClick={() => setForm({ ...form, trade_type: "buy" })} className={`py-2 rounded-lg text-xs font-bold transition-all ${form.trade_type === "buy" ? "bg-white text-green-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>BUY</button>
                   <button type="button" onClick={() => setForm({ ...form, trade_type: "sell" })} className={`py-2 rounded-lg text-xs font-bold transition-all ${form.trade_type === "sell" ? "bg-white text-red-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>SELL</button>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase ml-1">Amount</label>
@@ -164,7 +161,6 @@ export default function PrimeTradeDashboard() {
                     <input type="number" step="any" placeholder="0.00" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-black" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
                   </div>
                 </div>
-
                 <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-100 transition-all transform active:scale-[0.98]">
                   Execute Order
                 </button>
@@ -172,7 +168,6 @@ export default function PrimeTradeDashboard() {
             </div>
           </section>
 
-          {/* 4. Transactions Table */}
           <section className="lg:col-span-8">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="px-6 py-5 border-b border-slate-100 bg-white flex justify-between items-center">
