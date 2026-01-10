@@ -6,8 +6,15 @@ const db = require('./config/db'); // The pool created in Phase 2
 const app = express();
 
 // Middleware
-app.use(cors()); // Allows Next.js to connect
-app.use(express.json()); // Parses incoming JSON [cite: 11]
+app.use(cors()); // Allows Next.js to connect 
+// Use CORS middleware before your routes
+app.use(cors({
+    origin: 'http://localhost:3000', // Allow only your Next.js app
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
+
+app.use(express.json()); // Essential for parsing JSON bodies
 
 // Health Check Route (For Dashboard Test)
 app.get('/api/v1/health', async (req, res) => {
@@ -27,6 +34,18 @@ app.get('/api/v1/health', async (req, res) => {
         });
     }
 });
+
+// Routes
+const tradeRoutes = require('./routes/tradeRoutes'); 
+app.use('/api/v1/trades', tradeRoutes); 
+
+// Import Routes    
+const authRoutes = require('./routes/authRoutes'); 
+
+// API Routes 
+app.use('/api/v1/auth', authRoutes); 
+
+// Start Server
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
