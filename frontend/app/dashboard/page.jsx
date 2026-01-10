@@ -143,7 +143,10 @@ const handleDelete = async (id) => {
             <span className="text-xl font-bold tracking-tight">PrimeTrade</span>
           </div>
           <div className="flex items-center gap-4">
+            <button onClick={() => router.push("/")} className="text-sm font-bold text-blue-600">Home&nbsp; &nbsp;</button>
+               
             <div className="text-right">
+              
               <p className="text-xs font-bold text-black">{user?.username}</p>
               <p className="text-[10px] text-slate-400 uppercase font-black">{user?.role}</p>
             </div>

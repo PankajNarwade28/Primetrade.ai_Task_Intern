@@ -72,6 +72,9 @@ export default function AdminDashboard() {
             <span className="text-xl font-bold tracking-tighter">PrimeTrade Admin</span>
           </div>
           <div className="flex items-center gap-6">
+            <button onClick={() => router.push("/")} className="flex items-center text-sm font-medium text-slate-600 hover:text-blue-600">
+                <LayoutDashboard className="w-4 h-4 mr-2" /> Home
+              </button>
             {/* Displaying User Data */}
             <span className="text-sm text-slate-400">
               Logged in as: <span className="text-white font-bold">{user?.username || 'Admin'}</span>
